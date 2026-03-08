@@ -52,7 +52,7 @@ void play(std::string& folderpath) {
     //customize terminal
     std::cout << "\033[?25l";                //hide cursor
     std::cout << "\033]0;String-Theory\007"; //window name
-    std::cout << "\033[8;2;60t";             //window size
+    std::cout << "\033[8;2;80t";             //window size
 
     //set UTF-8 characters for display on console
     SetConsoleOutputCP(CP_UTF8);
