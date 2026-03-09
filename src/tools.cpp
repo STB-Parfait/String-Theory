@@ -19,11 +19,8 @@ std::string cleanID3String(const char* buffer, size_t length) {
 }
 
 std::string simpleStringPolish(const std::string* input) {
-    std::string result;
-    for (int i = 0; i < input->size() - 4; i++) {
-        result += input->at(i);
-    }
-    return result;
+    if (input->size() <= 4) return *input;
+    return input->substr(0, input->size() - 4);
 }
 
 std::string convWideString(const std::wstring& wideString) {
@@ -64,7 +61,7 @@ std::vector<std::string> scrapeFolder(const std::string& absolutepath) {
     }
 
     if (playlist.empty()) {
-        return {"ERROR: No .mp3 files found."};
+        return {};
     }
 
     return playlist;

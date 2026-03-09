@@ -69,6 +69,10 @@ void play(std::string& folderpath) {
     constexpr int EXTENTION_IDENTIFIER_B = 224;
 
     std::vector<std::string> playlist = scrapeFolder(folderpath);
+    if (playlist.empty()) {
+        std::cout << "The folder could not be read." << std::endl;
+        return;
+    }
 
     int currentTrackIndex = 0;
 
@@ -176,8 +180,9 @@ void play(std::string& folderpath) {
                     system("cls");
                     song.finished.store(true);
                 } else if (extendedKey == UP) {
-                    if (song.volume < 1.0f) {
-                        song.volume += 0.1f;
+                    float vol = song.volume.load();
+                    if (vol < 1.0f) {
+                        song.volume.store(std::min(vol + 0.1f, 1.0f));
                         system("cls");
                         std::cout << "[" << currentTrackIndex + 1  << "/"  << playlist.size() << "] Playing " << song.title << " by " << song.artist << " <volume: " << (song.volume * 100) << ">" << std::endl;
                     }
