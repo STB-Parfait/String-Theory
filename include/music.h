@@ -16,6 +16,10 @@ struct SongData {
     std::atomic<bool> paused;
     std::atomic<float> volume;
     std::atomic<bool> finished;
+
+    std::atomic<ma_uint64> currentFrame{0};
+    ma_uint64 totalFrames{0};
+
     std::string title;
     std::string artist;
 };

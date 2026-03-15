@@ -30,8 +30,9 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
 
     if (pSongData->playing.load()) {
         ma_uint64 framesRead = 0;
-
         ma_decoder_read_pcm_frames(&pSongData->decoder, pOutput, frameCount, &framesRead);
+
+        pSongData->currentFrame.fetch_add(framesRead);
 
         if (framesRead < frameCount) {
             pSongData->finished.store(true);
@@ -119,6 +120,7 @@ void playFolder(std::string& folderpath) {
         return;
     }
 
+    ma_decoder_get_length_in_pcm_frames(&song.decoder, &song.totalFrames);
     ma_device_start(&device); //start music
 
     std::cout << "[" << currentTrackIndex + 1  << "/"  << playlist.size() << "] Playing " << song.title << " by " << song.artist << " <volume: " << (song.volume * 100) << ">" << std::endl;
@@ -141,10 +143,16 @@ void playFolder(std::string& folderpath) {
             std::cout << "[" << currentTrackIndex + 1  << "/"  << playlist.size() << "] Playing " << song.title << " by " << song.artist << " <volume: " << (song.volume * 100) << ">" << std::endl;
 
             ma_device_stop(&device);
-
             ma_decoder_uninit(&song.decoder);
 
-            init_decoder_from_path(playlist[currentTrackIndex], &decoder_config, &song.decoder);
+            if (init_decoder_from_path(playlist[currentTrackIndex], &decoder_config, &song.decoder) != MA_SUCCESS) {
+                song.finished.store(true);
+                continue;
+            }
+
+            song.currentFrame.store(0);
+            song.totalFrames = 0;
+            ma_decoder_get_length_in_pcm_frames(&song.decoder, &song.totalFrames);
 
             song.finished.store(false);
             ma_device_start(&device);
@@ -174,12 +182,13 @@ void playFolder(std::string& folderpath) {
             } else if (key == EXTENTION_IDENTIFIER_A || key == EXTENTION_IDENTIFIER_B) {
                 int extendedKey = _getch();
                 if (extendedKey == LEFT) {
-                    ma_uint64 cursor;
-                    ma_decoder_get_cursor_in_pcm_frames(&song.decoder, &cursor);
+                    ma_uint64 cursor = song.currentFrame.load();
+                    //ma_decoder_get_cursor_in_pcm_frames(&song.decoder, &cursor);
                     double currentSecond = static_cast<double>(cursor) / song.decoder.outputSampleRate;
                     if (currentSecond > 2.0) {
                         ma_device_stop(&device);
                         ma_decoder_seek_to_pcm_frame(&song.decoder, 0);
+                        song.currentFrame.store(0);
                         ma_device_start(&device);
                     } else if (currentSecond <= 2 && currentTrackIndex != 0){
                         system("cls");
@@ -210,15 +219,16 @@ void playFolder(std::string& folderpath) {
             }
         }
 
-        /*
-        if (!song.paused.load()) {
-            ma_uint64 cursorFrames, totalFrames;
 
-            ma_decoder_get_cursor_in_pcm_frames(&song.decoder, &cursorFrames);
-            ma_decoder_get_length_in_pcm_frames(&song.decoder, &totalFrames);
+        if (!song.paused.load()) {
+            ma_uint64 cursorFrames = song.currentFrame.load();
+            ma_uint64 totalFrames = song.totalFrames;
 
             int currentSeconds = static_cast<int>(cursorFrames / song.decoder.outputSampleRate);
-            int totalSeconds = static_cast<int>(totalFrames / song.decoder.outputSampleRate);
+            int totalSeconds = 0;
+            if (song.decoder.outputSampleRate > 0) {
+                totalSeconds = static_cast<int>(totalFrames / song.decoder.outputSampleRate);
+            }
 
             int curMin = currentSeconds / 60;
             int curSec = currentSeconds % 60;
@@ -227,7 +237,7 @@ void playFolder(std::string& folderpath) {
 
             printf("\r[%02d:%02d/%02d:%02d] ", curMin, curSec, totMin, totSec);
             fflush(stdout);
-        }*/
+        }
 
         //sleep between songs
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
