@@ -15,6 +15,14 @@
 #include "id3.h"
 #include "tools.h"
 
+void clearScreen() {
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
 // if something breaks check here
 ma_result init_decoder_from_path(const std::filesystem::path& path, ma_decoder_config* pConfig, ma_decoder* pDecoder) {
     #ifdef _WIN32
@@ -133,13 +141,13 @@ void playFolder(std::string& folderpath) {
             currentTrackIndex++;
 
             if (currentTrackIndex >= playlist.size()) {
-                system("cls");
+                clearScreen();
                 std::cout << "Finished!" << std::endl;
                 break;
             }
 
             loadID3v2Tag(playlist[currentTrackIndex], song);
-            system("cls");
+            clearScreen();
             std::cout << "[" << currentTrackIndex + 1  << "/"  << playlist.size() << "] Playing " << song.title << " by " << song.artist << " <volume: " << (song.volume * 100) << ">" << std::endl;
 
             ma_device_stop(&device);
@@ -163,18 +171,18 @@ void playFolder(std::string& folderpath) {
             int key = _getch();
 
             if (key == ENTER) {
-                system("cls");
+                clearScreen();
                 std::cout << "Exiting..." << std::endl;
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 break;
             } else if (key == SPACEBAR) {
                 if (!song.paused.load()) {
-                    system("cls");
+                    clearScreen();
                     std::cout << "<paused>" << std::endl;
                     ma_device_stop(&device);
                     song.paused.store(true);
                 } else {
-                    system("cls");
+                    clearScreen();
                     std::cout << "[" << currentTrackIndex + 1  << "/"  << playlist.size() << "] Playing " << song.title << " by " << song.artist << " <volume: " << (song.volume * 100) << ">" << std::endl;
                     ma_device_start(&device);
                     song.paused.store(false);
@@ -191,18 +199,18 @@ void playFolder(std::string& folderpath) {
                         song.currentFrame.store(0);
                         ma_device_start(&device);
                     } else if (currentSecond <= 2 && currentTrackIndex != 0){
-                        system("cls");
+                        clearScreen();
                         currentTrackIndex -= 2;
                         song.finished.store(true);
                     }
                 } else if (extendedKey == RIGHT) {
-                    system("cls");
+                    clearScreen();
                     song.finished.store(true);
                 } else if (extendedKey == UP) {
                     float vol = song.volume.load();
                     if (vol < 1.0f) {
                         song.volume.store(std::min(vol + 0.1f, 1.0f));
-                        system("cls");
+                        clearScreen();
                         std::cout << "[" << currentTrackIndex + 1  << "/"  << playlist.size() << "] Playing " << song.title << " by " << song.artist << " <volume: " << (song.volume * 100) << ">" << std::endl;
                     }
                 } else if (extendedKey == DOWN) {
@@ -212,7 +220,7 @@ void playFolder(std::string& folderpath) {
                         if (vol < 0.05) { vol = 0.0f; }
                         vol = std::clamp(vol, 0.0f, 1.0f);
                         song.volume.store(vol);
-                        system("cls");
+                        clearScreen();
                         std::cout << "[" << currentTrackIndex + 1  << "/"  << playlist.size() << "] Playing " << song.title << " by " << song.artist << " <volume: " << (song.volume * 100) << ">" << std::endl;
                     }
                 }

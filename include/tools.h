@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <bits/fs_path.h>
+#include <filesystem>
 
 std::string cleanID3String(const char* buffer, size_t length);
 
