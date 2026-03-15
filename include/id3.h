@@ -11,6 +11,6 @@
 
 bool loadID3v1Tag(const std::string& filepath, SongData& data);
 
-bool loadID3v2Tag(const std::string& filepath, SongData& data);
+bool loadID3v2Tag(const std::filesystem::path& filepath, SongData& data);
 
 #endif //UNTITLED_ID3_H

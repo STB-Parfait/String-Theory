@@ -7,6 +7,8 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
+#include <bits/fs_path.h>
 
 std::string cleanID3String(const char* buffer, size_t length);
 
@@ -14,6 +16,6 @@ std::string simpleStringPolish(const std::string* input);
 
 std::string convWideString(const std::wstring& wideString);
 
-std::vector<std::string> scrapeFolder(const std::string& absolutepath);
+std::vector<std::filesystem::path> scrapeFolder(const std::string &absolutepath);
 
 #endif //UNTITLED_TOOLS_H

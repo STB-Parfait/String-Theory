@@ -22,6 +22,6 @@ struct SongData {
 
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 
-void play(std::string& folderpath);
+void playFolder(std::string& folderpath);
 
 #endif //UNTITLED_MUSIC_H

@@ -5,6 +5,7 @@
 #include "tools.h"
 
 #include <filesystem>
+#include <iostream>
 
 std::string cleanID3String(const char* buffer, size_t length) {
     std::string s(buffer, length);
@@ -42,25 +43,26 @@ std::string convWideString(const std::wstring& wideString) {
 
 }
 
-std::vector<std::string> scrapeFolder(const std::string& absolutepath) {
-    std::vector<std::string> playlist;
+std::vector<std::filesystem::path> scrapeFolder(const std::string &absolutepath) {
+    std::vector<std::filesystem::path> playlist;
 
     try {
         if (!std::filesystem::exists(absolutepath) || !std::filesystem::is_directory(absolutepath)) {
-            return {"ERROR: Folder does not exist or is not directory."};
+            std::cerr << "ERROR: Folder does not exist." << std::endl;
+            return {};
         }
 
         for (const auto& entry : std::filesystem::directory_iterator(absolutepath)) {
             if (entry.is_regular_file() && entry.path().extension() == ".mp3") {
-                std::wstring widepath = std::filesystem::path(entry.path()).wstring();
-                playlist.push_back(convWideString(widepath));
+
+                //legacy implementation
+                //std::wstring widepath = std::filesystem::path(entry.path()).wstring();
+                //playlist.push_back(convWideString(widepath));
+                playlist.push_back(entry.path());
             }
         }
     } catch (const std::filesystem::filesystem_error& e) {
-        return {"ERROR: " + std::string(e.what())};
-    }
-
-    if (playlist.empty()) {
+        std::cerr << e.what() << std::endl;
         return {};
     }
 

@@ -10,9 +10,19 @@
 #include <iostream>
 #include <thread>
 #include <windows.h>
+#include <filesystem>
 
 #include "id3.h"
 #include "tools.h"
+
+// if something breaks check here
+ma_result init_decoder_from_path(const std::filesystem::path& path, ma_decoder_config* pConfig, ma_decoder* pDecoder) {
+    #ifdef _WIN32
+        return ma_decoder_init_file_w(path.wstring().c_str(), pConfig, pDecoder);
+    #else
+        return ma_decoder_init_file(path.c_str(), pConfig, pDecoder);
+    #endif
+}
 
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount) {
 
@@ -47,7 +57,7 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
     }
 }
 
-void play(std::string& folderpath) {
+void playFolder(std::string& folderpath) {
 
     //customize terminal
     std::cout << "\033[?25l";                //hide cursor
@@ -68,7 +78,7 @@ void play(std::string& folderpath) {
     constexpr int EXTENTION_IDENTIFIER_A = 0;
     constexpr int EXTENTION_IDENTIFIER_B = 224;
 
-    std::vector<std::string> playlist = scrapeFolder(folderpath);
+    std::vector<std::filesystem::path> playlist = scrapeFolder(folderpath);
     if (playlist.empty()) {
         std::cout << "The folder could not be read." << std::endl;
         return;
@@ -86,7 +96,7 @@ void play(std::string& folderpath) {
     ma_decoder_config decoder_config = ma_decoder_config_init(ma_format_f32, 0, 0);
 
     //check if it worked
-    if (ma_decoder_init_file(playlist[currentTrackIndex].c_str(), &decoder_config, &song.decoder) != MA_SUCCESS) {
+    if (init_decoder_from_path(playlist[currentTrackIndex], &decoder_config, &song.decoder) != MA_SUCCESS) {
         std::cout << "Failed to load the audio file. Check the path!" << std::endl;
         return;
     }
@@ -134,7 +144,7 @@ void play(std::string& folderpath) {
 
             ma_decoder_uninit(&song.decoder);
 
-            ma_decoder_init_file(playlist[currentTrackIndex].c_str(), &decoder_config, &song.decoder);
+            init_decoder_from_path(playlist[currentTrackIndex], &decoder_config, &song.decoder);
 
             song.finished.store(false);
             ma_device_start(&device);
@@ -200,6 +210,7 @@ void play(std::string& folderpath) {
             }
         }
 
+        /*
         if (!song.paused.load()) {
             ma_uint64 cursorFrames, totalFrames;
 
@@ -216,7 +227,7 @@ void play(std::string& folderpath) {
 
             printf("\r[%02d:%02d/%02d:%02d] ", curMin, curSec, totMin, totSec);
             fflush(stdout);
-        }
+        }*/
 
         //sleep between songs
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

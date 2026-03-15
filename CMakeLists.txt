@@ -11,6 +11,7 @@ add_executable(untitled main.cpp
         src/id3.cpp
         src/music.cpp
         src/tools.cpp
+        resources.rc
 )
 
 target_include_directories(untitled PRIVATE include)

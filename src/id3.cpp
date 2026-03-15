@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <string>
+#include <filesystem>
 
 #include "music.h"
 #include "tools.h"
@@ -29,15 +30,15 @@ bool loadID3v1Tag(const std::string& filepath, SongData& data) {
     return false;
 }
 
-bool loadID3v2Tag(const std::string& filepath, SongData& data) {
+bool loadID3v2Tag(const std::filesystem::path& filepath, SongData& data) {
     std::ifstream file(filepath, std::ios::binary);
     if (!file.is_open()) return false;
 
     char header[10];
     file.read(header, 10);
     if (std::string(header, 3) != "ID3") {
-        data.title = filepath;
-        data.artist = "Unknown";
+        data.title = "Unknown song";
+        data.artist = "Unknown artist";
         return false;
     }
 
